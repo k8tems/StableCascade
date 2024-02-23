@@ -1,6 +1,7 @@
 import torch
 import torchvision
 from torch import nn, optim
+import torch_optimizer as optim
 from transformers import AutoTokenizer, CLIPTextModelWithProjection, CLIPVisionModelWithProjection
 from warmup_scheduler import GradualWarmupScheduler
 
@@ -252,7 +253,11 @@ class WurstCore(TrainingCore, DataCore, WarpCore):
         )
 
     def setup_optimizers(self, extras: Extras, models: Models) -> Optimizers:
-        optimizer = optim.AdamW(models.lora.parameters(), lr=self.config.lr)  # , eps=1e-7, betas=(0.9, 0.95))
+        # optimizer = optim.AdamW(models.lora.parameters(), lr=self.config.lr)  # , eps=1e-7, betas=(0.9, 0.95))
+        optimizer = optim.Adafactor(
+            models.lora.parameters(), lr= 1e-3, eps2= (1e-30, 1e-3),
+            clip_threshold=1.0, decay_rate=-0.8, beta1=None, weight_decay=0.0,
+            scale_parameter=True, relative_step=True, warmup_init=False)
         optimizer = self.load_optimizer(optimizer, 'lora_optim',
                                         fsdp_model=models.lora if self.config.use_fsdp else None)
         return self.Optimizers(generator=None, lora=optimizer)
