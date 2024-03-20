@@ -10,3 +10,4 @@ jobs/*.sh
 .ipynb_checkpoints
 *.safetensors
 *_test.yaml
+wandb/*
